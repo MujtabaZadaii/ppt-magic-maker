@@ -46,7 +46,6 @@ function Index() {
     setStatus("Reading PDF…");
     try {
       const pdfjs = await import("pdfjs-dist");
-      // @ts-expect-error worker url import
       const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
       pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
       const PptxGenJS = (await import("pptxgenjs")).default;
@@ -84,13 +83,13 @@ function Index() {
         for (const item of content.items as Array<Record<string, unknown>>) {
           const str = String(item["str"] ?? "").trim();
           if (!str) continue;
-          const tr = item["transform"] as number[];
-          const size = Math.hypot(tr[2], tr[3]);
+          const tr = (item["transform"] as number[]) ?? [1, 0, 0, 1, 0, 0];
+          const size = Math.hypot(tr[2] ?? 1, tr[3] ?? 1) || 12;
           const w = Number(item["width"]) * sx;
           const h = size * sy;
           slide.addText(str, {
-            x: tr[4] * sx,
-            y: (base.height - tr[5] - size) * sy,
+            x: (tr[4] ?? 0) * sx,
+            y: (base.height - (tr[5] ?? 0) - size) * sy,
             w: Math.max(w * 1.15, 0.2),
             h: Math.max(h * 1.6, 0.15),
             fontSize: Math.max(size * 0.72, 5),
